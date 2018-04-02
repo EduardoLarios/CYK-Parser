@@ -4,16 +4,23 @@
 #include <string>
 #include <cassert>
 #include <iomanip>
+#include <vector>
 using namespace std;
 
 #define MAX 100
+
+//for more readability along the code.-
 #define for (i, a, b) for (i = a; i < b; i++)
 
-string gram[MAX][MAX]; //to store entered grammar
+//-------------------------------------------------------------------------
+string inputstring[MAX][MAX];
+string productions[MAX][MAX];
+string generatedgram[MAX][MAX];
 string dpr[MAX];
-int p, np; //np-> number of productions
+int p, np;
 
-inline string concat(string a, string b) //concatenates unique non-terminals
+//-------------------------------------------------------------------------
+string concat(string a, string b)
 {
     int i;
     string r = a;
@@ -22,14 +29,53 @@ inline string concat(string a, string b) //concatenates unique non-terminals
             r += b[i];
     return (r);
 }
-
-inline void break_gram(string a) //seperates right hand side of entered grammar
+//-------------------------------------------------------------------------
+string search_productions(string p)
 {
+    //iterators vertical & horizontal
+    int j, k;
+    //------------------------------------
+    string r = "";
+    for (j, 0, np)
+    {
+        k = 1;
+        while (generatedgram[j][k] != "")
+        {
+            if (generatedgram[j][k] == p)
+            {
+                r = concat(r, generatedgram[j][0]);
+            }
+            k++;
+        }
+    }
+    return r;
+}
+//-------------------------------------------------------------------------
+string generate_combinations(string a, string b)
+{
+    int i, j;
+    string pri = a, re = "";
+    for (i, 0, a.length())
+    {
+        for (j, 0, b.length())
+        {
+            pri = "";
+            pri = pri + a[i] + b[j];
+            re = re + search_productions(pri);
+        }
+    }
+    return re;
+}
+//-------------------------------------------------------------------------
+void split_gram(string a)
+{
+    //iterator
     int i;
+    //-------
     p = 0;
     while (a.length())
     {
-        i = a.find("|");
+        i = a.find(" ");
         if (i > a.length())
         {
             dpr[p++] = a;
@@ -42,141 +88,132 @@ inline void break_gram(string a) //seperates right hand side of entered grammar
         }
     }
 }
-
-inline int lchomsky(string a) //checks if LHS of entered grammar is in CNF
+//-------------------------------------------------------------------------
+int main(int argc, char *argv[])
 {
-    if (a.length() == 1 && a[0] >= 'A' && a[0] <= 'Z')
-        return 1;
-    return 0;
-}
+    //flags & iterators
+    bool grammar = true;
+    //-----
+    int i = 0;
+    int j = 0;
+    int k = 0;
+    //------------------
 
-inline int rchomsky(string a) //checks if RHS of grammar is in CNF
-{
-    if (a.length() == 1 && a[0] >= 'a' && a[0] <= 'z')
-        return 1;
-    if (a.length() == 2 && a[0] >= 'A' && a[0] <= 'Z' && a[1] >= 'A' && a[1] <= 'Z')
-        return 1;
-    return 0;
-}
+    int pt, l;
+    int input_number;
 
-inline string search_prod(string p) //returns a concatenated string of variables which can produce string p
-{
-    int j, k;
-    string r = "";
-    for (j, 0, np)
+    string a, str, r, pr, start;
+    std::string line;
+    std::vector<std::string> lines;
+    //-------------------------
+    while (std::getline(std::cin, line))
     {
-        k = 1;
-        while (gram[j][k] != "")
+        lines.push_back(line);
+        if (line[0] > 90 || line[0] < 65)
         {
-            if (gram[j][k] == p)
+            grammar = false;
+            inputstring[i][0] = line;
+            i++;
+        }
+
+        //checks the number of productions there are
+        if (grammar)
+        {
+            productions[j][0] = line;
+            if (j == 0)
             {
-                r = concat(r, gram[j][0]);
+                start = line[0];
             }
-            k++;
+            j++;
         }
     }
-    return r;
-}
-
-inline string gen_comb(string a, string b) //creates every combination of variables from a and b . For eg: BA * AB = {BA, BB, AA, BB}
-{
-    int i, j;
-    string pri = a, re = "";
-    for (i, 0, a.length())
-        for (j, 0, b.length())
-        {
-            pri = "";
-            pri = pri + a[i] + b[j];
-            re = re + search_prod(pri); //searches if the generated productions can be created or not
-        }
-    return re;
-}
-
-int main()
-{
-    int i, pt, j, l, k;
-    string a, str, r, pr, start;
-    cout << "\nEnter the start Variable ";
-    cin >> start;
-    cout << "\nNumber of productions ";
-    cin >> np;
+    //----------------------
+    input_number = i;
+    np = j;
+    //---------------------------
     for (i, 0, np)
     {
-        cin >> a;
-        pt = a.find("->");
-        gram[i][0] = a.substr(0, pt);
-        if (lchomsky(gram[i][0]) == 0)
+        string temp = "";
+        int temporal;
+        for (temporal, 0, 100)
         {
-            cout << "\nGrammar not in Chomsky Form";
-            abort();
+            temp += productions[i][temporal];
         }
-        a = a.substr(pt + 2, a.length());
-        break_gram(a);
+        a = temp;
+        pt = a.find(" ");
+        generatedgram[i][0] = a.substr(0, pt);
+
+        a = a.substr(pt + 1, a.length());
+        split_gram(a);
         for (j, 0, p)
         {
-            gram[i][j + 1] = dpr[j];
-            if (rchomsky(dpr[j]) == 0)
-            {
-                cout << "\nGrammar not in Chomsky Form";
-                abort();
-            }
+            generatedgram[i][j + 1] = dpr[j];
         }
     }
+
     string matrix[MAX][MAX], st;
-    cout << "\nEnter string to be checked : ";
-    cin >> str;
-    for (i, 0, str.length()) //Assigns values to principal diagonal of matrix
+    //iterator, we could reuse some variables as iterators, but to see the flow of data easier we use different ones;
+    int cd;
+    for (cd, 0, input_number)
     {
-        r = "";
-        st = "";
-        st += str[i];
-        for (j, 0, np)
+        string temp = "";
+        int temporal;
+        for (temporal, 0, 100)
         {
-            k = 1;
-            while (gram[j][k] != "")
-            {
-                if (gram[j][k] == st)
-                {
-                    r = concat(r, gram[j][0]);
-                }
-                k++;
-            }
+            temp += inputstring[cd][temporal];
         }
-        matrix[i][i] = r;
-    }
-    int ii, kk;
-    for (k, 1, str.length()) //Assigns values to upper half of the matrix
-    {
-        for (j, k, str.length())
+        str = temp;
+
+        for (i, 0, str.length())
         {
+            //
             r = "";
-            for (l, j - k, j)
+            st = "";
+            st += str[i];
+            for (j, 0, np)
             {
-                pr = gen_comb(matrix[j - k][l], matrix[l + 1][j]);
-                r = concat(r, pr);
+                k = 1;
+                while (generatedgram[j][k] != "")
+                {
+                    if (generatedgram[j][k] == st)
+                    {
+                        r = concat(r, generatedgram[j][0]);
+                    }
+                    k++;
+                }
             }
-            matrix[j - k][j] = r;
+            matrix[i][i] = r;
+        }
+
+        for (k, 1, str.length())
+        {
+            for (j, k, str.length())
+            {
+                r = "";
+                for (l, j - k, j)
+                {
+                    pr = generate_combinations(matrix[j - k][l], matrix[l + 1][j]);
+                    r = concat(r, pr);
+                }
+                matrix[j - k][j] = r;
+            }
+        }
+        int f = 0;
+        bool flag = true;
+
+        //-------------------Answer / accepted or rejected-------------------------------------------
+        for (i, 0, start.length())
+        {
+            if (matrix[0][str.length() - 1].find(start[i]) <= matrix[0][str.length() - 1].length())
+            {
+                cout << "Accepted\n";
+                flag = false;
+            }
+        }
+        if (flag)
+        {
+            cout << "Rejected\n";
         }
     }
-
-    for (i, 0, str.length()) //Prints the matrix
-    {
-        k = 0;
-        l = str.length() - i - 1;
-        for (j, l, str.length())
-        {
-            cout << setw(5) << matrix[k++][j] << " ";
-        }
-        cout << endl;
-    }
-
-    int f = 0;
-    for (i, 0, start.length())
-        if (matrix[0][str.length() - 1].find(start[i]) <= matrix[0][str.length() - 1].length()) //Checks if last element of first row contains a Start variable
-        {
-            cout << "String can be generated\n";
-            return 0;
-        }
-    cout << "String cannot be generated\n";
     return 0;
 }
