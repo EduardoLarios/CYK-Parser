@@ -1,0 +1,72 @@
+E EW TY LU a b IA IB IZ IO
+T TY LU a b IA IB IZ IO
+F LU a b IA IB IZ IO
+I a b IA IB IZ IO
+A a 
+B b 
+Z 0 
+O 1 
+P + 
+M * 
+L ( 
+R ) 
+W PT 
+Y MF 
+U ER
+a+b
+aba/bab
+a0+b1
+(a+b)
++-abba
+0+1
+
+-----Expected Result-------
+
+Accepted
+Rejected
+Accepted
+Accepted
+Rejected
+Rejected
+
+----------------
+
+
+S AX YB a AS SA
+A b AX YB a AS SA
+X SA
+B b
+Y a
+aaaaaa
+ababa
+ababab
+cccccc
+aaaacaa
+
+-----Expected Result-------
+
+Accepted
+Accepted
+Accepted
+Rejected
+Rejected
+
+----------------
+
+S AB BC
+A BA a
+B CC b
+C AB a
+baaba
+ababa
+abbabb
+aaaa
+
+-----Expected Result-------
+
+Accepted
+Accepted
+Rejected
+Rejected
+
+----------------
