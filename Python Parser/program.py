@@ -66,7 +66,7 @@ def main():
     lines = []
     
     for line in fileinput.input():
-        lines.append(line.replace("\n",""))
+        lines.append(line.decode('utf-8', "replace").replace("\n",""))
     
     for line in lines:
         if line[0] > 'Z' or line[0] < 'A':
